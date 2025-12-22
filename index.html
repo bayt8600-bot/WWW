@@ -1,10 +1,25 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" style="cursor:none">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DK | PRODUCTION-DESIGNER</title>
+    <style>
+        html,
+        body,
+        html.preloading,
+        html.preloading *,
+        body.intro-active,
+        body.intro-active * {
+            cursor: none !important;
+        }
+    </style>
+
+    <script>
+        document.documentElement.style.cursor = 'none';
+        document.documentElement.classList.add('preloading');
+    </script>
 
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -42,7 +57,6 @@
     </script>
 
     <style>
-        html,
         body {
             background-color: #050505;
             color: #F0F0F0;
@@ -77,6 +91,8 @@
             display: block;
         }
 
+        html,
+        body,
         body a,
         body button,
         body .art-eye,
@@ -126,14 +142,17 @@
                 0 0 22px rgba(209, 255, 15, 0.6);
         }
 
-        .cursor-dot,
-        .cursor-aura {
+        .cursor-dot {
             opacity: 0;
         }
 
         .cursor-active .cursor-dot,
-        .cursor-active .cursor-aura {
+        .intro-active .cursor-dot {
             opacity: 1;
+        }
+
+        html.preloading .cursor-dot {
+            opacity: 0 !important;
         }
 
 
@@ -184,7 +203,7 @@
 
         .hero-title .hero-letter {
             display: inline-block;
-            cursor: auto;
+            cursor: none;
             /* использовать наш кастомный курсор-точку */
             position: relative;
             transition: text-shadow 0.3s ease, transform 0.3s ease, filter 0.3s ease;
@@ -213,24 +232,7 @@
         /* Контрастный курсор внутри выбранных карточек */
 
         /* 2. КУРСОР */
-        .cursor-aura {
-            display: block;
-            /* Restored */
-            /* pointer-events check handled by cursor-dot? no, aura is just visual */
-            pointer-events: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 80px;
-            height: 80px;
-            background: rgba(255, 255, 255, 0.08);
-            /* faint glow */
-            border-radius: 50%;
-            z-index: 300000;
-            transform: translate(-50%, -50%);
-            mix-blend-mode: exclusion;
-            transition: width 0.3s, height 0.3s, background 0.3s;
-        }
+        /* cursor aura removed */
 
 
 
@@ -273,12 +275,15 @@
             padding: 220px 0 200px;
             position: relative;
             overflow: hidden;
+            contain: layout paint;
+            transform: translateZ(0);
         }
 
         .start-cta {
             position: relative;
             margin: 0 auto;
-            width: min(360px, 90vw);
+            --record-size: min(360px, 90vw);
+            width: var(--record-size);
             aspect-ratio: 1 / 1;
             display: grid;
             place-items: center;
@@ -286,6 +291,7 @@
             border: none;
             cursor: pointer;
             overflow: visible;
+            --record-scale: 2.2;
         }
 
         .start-record {
@@ -297,7 +303,7 @@
             object-fit: contain;
             z-index: 2;
             filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.55));
-            transform: translate3d(-50%, -50%, 0) scale(3);
+            transform: translate3d(-50%, -50%, 0) scale(var(--record-scale));
             transform-origin: center;
             animation: spinRecord 36s linear infinite;
             pointer-events: none;
@@ -314,7 +320,7 @@
             --glow-intensity: 0.2;
             --glow-scale: 2.995;
             --glow-blur: 1px;
-            transform: translate(-50%, -50%) scale(var(--glow-scale));
+            transform: translate(-50%, -50%) scale(calc(var(--glow-scale) * var(--record-scale) / 3));
             transform-origin: center;
             z-index: 1;
             background: radial-gradient(ellipse at 50% 50%,
@@ -360,7 +366,7 @@
         .start-cta .start-word {
             font-family: "Syne", sans-serif;
             font-weight: 700;
-            font-size: clamp(2.5rem, 8vw, 4.5rem);
+            font-size: clamp(1.6rem, calc(var(--record-size) * 0.22), 4.5rem);
             color: #ffffff;
             letter-spacing: -0.04em;
             line-height: 0.9;
@@ -370,7 +376,7 @@
 
         .start-cta .project-word {
             font-family: "Permanent Marker", cursive;
-            font-size: clamp(2.8rem, 9vw, 4.8rem);
+            font-size: clamp(1.8rem, calc(var(--record-size) * 0.25), 4.8rem);
             color: #ff73d9;
             transform: translateY(8px) rotate(-2deg);
             letter-spacing: 0.04em;
@@ -384,6 +390,31 @@
             filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.4));
             position: relative;
             z-index: 5;
+        }
+
+        @media (max-width: 1100px) {
+            .start-cta {
+                --record-size: min(320px, 70vw);
+                --record-scale: 1.6;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .start-cta {
+                --record-size: min(280px, 64vw);
+                --record-scale: 1.35;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .start-cta {
+                --record-size: 150px;
+                --record-scale: 0.56;
+            }
+
+            .start-record {
+                filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.35));
+            }
         }
 
         @keyframes spinReel {
@@ -1486,6 +1517,7 @@
                 width: 100% !important;
                 padding: 0 5px !important;
                 white-space: normal !important;
+                text-align: center !important;
             }
 
             .hero-title br {
@@ -1608,7 +1640,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: rgba(5, 5, 5, 0.92);
+            background: #050505;
             backdrop-filter: blur(6px);
             pointer-events: auto;
             cursor: none !important;
@@ -1616,12 +1648,19 @@
             height: 100svh;
         }
 
-        /* Background content remains visible but unscrollable */
         body.is-locked {
             overflow: hidden !important;
             height: 100svh !important;
             width: 100%;
             overscroll-behavior: none;
+        }
+
+        /* Hide background content during into to avoid glitches */
+        body.is-locked header,
+        body.is-locked .start-section,
+        body.is-locked footer,
+        body.is-locked nav {
+            visibility: hidden !important;
         }
 
         body.is-locked,
@@ -2044,7 +2083,7 @@
     </style>
 </head>
 
-<body class="antialiased view-intro">
+<body class="antialiased view-intro" style="cursor:none">
 
     <div id="preloader" aria-hidden="true">
         <canvas id="preloader-canvas"></canvas>
@@ -2058,7 +2097,6 @@
     </audio>
 
     <div class="cursor-dot"></div>
-    <div class="cursor-aura"></div>
 
     <!-- КНОПКА ЗВУКА -->
     <div class="sound-btn" onclick="toggleAudio()">
@@ -3717,6 +3755,7 @@
         const audio = document.getElementById('bg-music');
         const soundBtn = document.querySelector('.sound-btn');
         const bodyEl = document.body;
+        const bgVolume = 0.05;
         const startBtn = document.getElementById('asteroid-btn'); // Changed to asteroid-btn
         const homeLink = document.getElementById('home-link');
         const detailScreen = document.getElementById('project-detail');
@@ -3738,10 +3777,21 @@
         let analyser;
         let analyserData;
         let mediaSource;
+        let gainNode;
         let glowEnergy = 0.18;
         let beatKick = 0;
         let lastBeatAt = 0;
 
+
+        function applyAudioVolume() {
+            if (!audio) return;
+            if (gainNode) {
+                gainNode.gain.value = bgVolume;
+                audio.volume = 1;
+            } else {
+                audio.volume = bgVolume;
+            }
+        }
 
         function ensureAudioAnalyser() {
             if (!audio || analyser) return;
@@ -3753,8 +3803,11 @@
                 analyser.fftSize = 256;
                 analyser.smoothingTimeConstant = 0.72;
                 mediaSource = audioCtx.createMediaElementSource(audio);
+                gainNode = audioCtx.createGain();
+                gainNode.gain.value = bgVolume;
                 mediaSource.connect(analyser);
-                analyser.connect(audioCtx.destination);
+                analyser.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
                 analyserData = new Uint8Array(analyser.frequencyBinCount);
             }
         }
@@ -3825,17 +3878,28 @@
                 this.time = 0;
                 this.rafId = null;
                 this.isActive = true;
-                this.duration = 8000;
+                this.duration = 6000;
                 this.startTime = Date.now();
+                this.isLoaded = false;
+                this.finishStart = null;
+                this.finishFrom = 0;
+                this.finishDuration = 400;
+                this.progress = 0;
 
                 document.body.classList.add('is-locked');
+                document.body.classList.add('intro-active');
                 document.body.classList.remove('cursor-active');
 
                 this.resize();
                 window.addEventListener('resize', () => this.resize());
                 this.loop();
 
-                setTimeout(() => this.hide(), this.duration);
+                window.addEventListener('load', () => {
+                    this.isLoaded = true;
+                    const now = Date.now();
+                    this.finishStart = Math.max(this.startTime + this.duration, now);
+                    this.finishFrom = this.progress;
+                });
             }
 
             resize() {
@@ -3847,8 +3911,22 @@
             loop() {
                 if (!this.isActive) return;
 
-                const elapsed = Date.now() - this.startTime;
-                const progress = Math.min(elapsed / this.duration, 1);
+                const now = Date.now();
+                let targetProgress = 0;
+                if (this.isLoaded) {
+                    if (this.finishStart && now < this.finishStart) {
+                        const elapsed = now - this.startTime;
+                        targetProgress = Math.min(elapsed / this.duration, 0.95);
+                    } else {
+                        const finishElapsed = now - (this.finishStart || now);
+                        const t = Math.min(finishElapsed / this.finishDuration, 1);
+                        targetProgress = this.finishFrom + (1 - this.finishFrom) * t;
+                    }
+                } else {
+                    const elapsed = now - this.startTime;
+                    targetProgress = Math.min(elapsed / this.duration, 0.95);
+                }
+                this.progress = Math.max(this.progress, targetProgress);
 
                 this.time += 0.04; // Smooth, slow movement
                 const { ctx, width, height, time } = this;
@@ -3879,7 +3957,7 @@
                 ctx.stroke();
 
                 // 2. Draw the PROGRESS "CRAWLING" along the thread
-                const drawWidth = width * progress;
+                const drawWidth = width * this.progress;
                 if (drawWidth > 0) {
                     ctx.lineWidth = 1.5;
                     ctx.strokeStyle = mainColor;
@@ -3903,7 +3981,31 @@
                     ctx.fill();
                 }
 
+                if (this.isLoaded && this.progress >= 1) {
+                    this.hide();
+                    return;
+                }
+
                 this.rafId = requestAnimationFrame(() => this.loop());
+            }
+
+            getLoadProgress() {
+                const images = Array.from(document.images || []);
+                const media = Array.from(document.querySelectorAll('video'));
+                const total = images.length + media.length;
+                if (total === 0) {
+                    const elapsed = Date.now() - this.startTime;
+                    return Math.min(elapsed / this.duration, 0.95);
+                }
+                let loaded = 0;
+                images.forEach(img => {
+                    if (img.complete && img.naturalWidth > 0) loaded += 1;
+                });
+                media.forEach(v => {
+                    if (v.readyState >= 2) loaded += 1;
+                });
+                const ratio = loaded / total;
+                return Math.min(ratio * 0.95, 0.95);
             }
 
             hide() {
@@ -3911,6 +4013,7 @@
                 this.isActive = false;
                 this.container.classList.add('is-hidden');
                 cancelAnimationFrame(this.rafId);
+                document.documentElement.classList.remove('preloading');
                 document.body.classList.add('cursor-active');
                 setTimeout(() => {
                     if (this.container) this.container.remove();
@@ -4005,10 +4108,13 @@
         // In the session we ADDED ensureAudioAnalyser. So we should remove it 
         // or revert startMusic to simple form.
 
+        applyAudioVolume();
+
         function startMusic() {
             if (musicStarted && !audio.paused) return;
             musicStarted = true;
             audio.muted = false;
+            applyAudioVolume();
             // audio.currentTime = 0; 
 
             // Reverting to simple play as per user request to "return everything as it was"
@@ -4059,6 +4165,7 @@
         audio.addEventListener('play', () => {
             ensureAudioAnalyser();
             resumeAudioContext();
+            applyAudioVolume();
             soundBtn.classList.add('playing');
         });
 
@@ -4141,22 +4248,33 @@
         let width, height;
         let particles = [];
         let lastWidth = window.innerWidth;
+        let lastHeight = window.innerHeight;
         let hasSized = false;
 
         function resize() {
-            // MOBILE FIX: Ignore resize if only height changed (Address bar hide/show)
-            // This prevents "jump" of particles during scroll
             const newWidth = window.innerWidth;
-            if (hasSized && newWidth === lastWidth && newWidth < 768) return;
+            const newHeight = window.innerHeight;
+            if (hasSized && newWidth === lastWidth && newHeight === lastHeight) return;
+
+            const prevWidth = width || newWidth;
+            const prevHeight = height || newHeight;
+            const scaleX = newWidth / prevWidth;
+            const scaleY = newHeight / prevHeight;
+
+            if (hasSized && (scaleX !== 1 || scaleY !== 1)) {
+                particles.forEach(p => {
+                    p.x = Math.min(newWidth, Math.max(0, p.x * scaleX));
+                    p.y = Math.min(newHeight, Math.max(0, p.y * scaleY));
+                    p.homeX = Math.min(newWidth, Math.max(0, p.homeX * scaleX));
+                    p.homeY = Math.min(newHeight, Math.max(0, p.homeY * scaleY));
+                });
+            }
 
             lastWidth = newWidth;
+            lastHeight = newHeight;
             hasSized = true;
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-
-            // Re-calc baseline home positions if needed? 
-            // Better to let them drift, but for strict "Home" logic, maybe not needed.
-            // Leaving simple resize for now.
+            width = canvas.width = newWidth;
+            height = canvas.height = newHeight;
         }
         window.addEventListener('resize', resize);
         resize();
@@ -4195,6 +4313,7 @@
             }
             // Calculate visual Y position with parallax and wrapping
             getVisualY(scrollY) {
+                if (window.innerWidth < 768) return this.y;
                 const h = window.innerHeight;
                 // Parallax: Background moves at 0.5 speed
                 let vy = this.y - (scrollY * 0.5);
@@ -4256,7 +4375,7 @@
                     this.size -= (this.size - this.targetSize) * 0.05;
                 }
 
-                // Interaction only for non-touch devices
+                // Interaction: mouse (desktop) or touch (mobile)
                 if (!isTouchDevice) {
                     const dx = mx - this.x;
                     const dy = my - this.y;
@@ -4264,17 +4383,40 @@
 
                     // Gentle Attraction Radius (100px)
                     if (dist < 100) {
-                        // Force Factor (Close = Stronger)
                         const force = (100 - dist) / 100;
-                        // Attraction Speed (0.2 normal, 0.05 mobile very calm)
                         const attractionSpeed = isMobile ? 0.05 : 0.2;
 
                         this.vx += (dx / dist) * force * attractionSpeed;
                         this.vy += (dy / dist) * force * attractionSpeed;
 
-                        // Friction to prevent orbiting/chaos
                         this.vx *= 0.92;
                         this.vy *= 0.92;
+                    }
+                } else if (touchActive) {
+                    const dx = touchX - this.x;
+                    const dy = touchY - this.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const radius = 160;
+                    if (dist < radius) {
+                        const force = (radius - dist) / radius;
+                        const press = 0.08 + touchStrength * 0.35;
+                        this.vx += (dx / dist) * force * press;
+                        this.vy += (dy / dist) * force * press;
+                        this.vx *= 0.9;
+                        this.vy *= 0.9;
+                    }
+                }
+
+                if (touchBurst > 0.001) {
+                    const dx = this.x - touchX;
+                    const dy = this.y - touchY;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const burstRadius = 220;
+                    if (dist < burstRadius) {
+                        const force = (burstRadius - dist) / burstRadius;
+                        const burst = touchBurst * 0.6;
+                        this.vx += (dx / dist) * force * burst;
+                        this.vy += (dy / dist) * force * burst;
                     }
                 }
 
@@ -4302,25 +4444,58 @@
             particles.push(p);
         }
 
+        if (cursorDot) gsap.set(cursorDot, { xPercent: -50, yPercent: -50 });
+
         let mx = width / 2, my = height / 2;
+        let touchActive = false;
+        let touchStrength = 0;
+        let touchX = width / 2;
+        let touchY = height / 2;
+        let touchBurst = 0;
         window.addEventListener('mousemove', e => {
             mx = e.clientX; my = e.clientY;
             if (cursorDot) {
                 const el = document.elementFromPoint(e.clientX, e.clientY);
                 const inContrastZone = el && el.closest('.cursor-contrast-zone');
                 cursorDot.classList.toggle('is-contrast', Boolean(inContrastZone));
+                gsap.to(cursorDot, { x: mx, y: my, duration: 0.08, ease: 'power2.out' });
             }
-            gsap.to('.cursor-dot', { x: mx, y: my, duration: 0.08, ease: 'power2.out' });
         });
         window.addEventListener('pointermove', e => {
-            gsap.set('.cursor-dot', { x: e.clientX, y: e.clientY });
+            if (cursorDot) gsap.set(cursorDot, { x: e.clientX, y: e.clientY });
         });
 
+        window.addEventListener('touchstart', (e) => {
+            const t = e.touches[0];
+            if (!t) return;
+            touchActive = true;
+            touchX = t.clientX;
+            touchY = t.clientY;
+            touchStrength = typeof t.force === 'number' && t.force > 0 ? t.force : 0.35;
+        }, { passive: true });
+
+        window.addEventListener('touchmove', (e) => {
+            const t = e.touches[0];
+            if (!t) return;
+            touchX = t.clientX;
+            touchY = t.clientY;
+            touchStrength = typeof t.force === 'number' && t.force > 0 ? t.force : 0.45;
+        }, { passive: true });
+
+        window.addEventListener('touchend', () => {
+            if (touchActive) touchBurst = 1;
+            touchActive = false;
+            touchStrength = 0;
+        }, { passive: true });
+
         function animateCanvas() {
-            const scrollY = window.scrollY;
+            const scrollY = window.innerWidth < 768 ? 0 : window.scrollY;
             ctx.clearRect(0, 0, width, height);
             ctx.strokeStyle = 'rgba(255,255,255,0.05)';
             ctx.lineWidth = 0.5;
+            if (touchBurst > 0) {
+                touchBurst *= 0.9;
+            }
 
             for (let i = 0; i < particles.length; i++) {
                 const p = particles[i];
@@ -4365,7 +4540,7 @@
             requestAnimationFrame(raf);
         } else {
             console.log('Lenis disabled on mobile or not found.');
-            document.documentElement.style.scrollBehavior = 'smooth';
+            document.documentElement.style.scrollBehavior = 'auto';
         }
 
 
@@ -4503,6 +4678,8 @@
 
             setTimeout(() => {
                 introOverlay.style.display = 'none';
+                document.body.classList.remove('intro-active');
+                document.body.classList.add('cursor-active');
             }, 650);
 
             // Start music strictly after asteroid interaction
@@ -4558,7 +4735,7 @@
                 // HEADLESS FIX: Force audio play directly on user interaction
                 if (audio) {
                     audio.muted = false;
-                    audio.volume = 1.0;
+                    applyAudioVolume();
                     audio.play().catch(e => console.warn("Force play fail:", e));
                     if (soundBtn) soundBtn.classList.add('playing');
                 }
