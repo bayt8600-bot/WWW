@@ -21,20 +21,152 @@
         document.documentElement.classList.add('preloading');
     </script>
 
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        (() => {
+            const initPreloader = () => {
+                if (window.__acidPreloaderInit) return;
+                window.__acidPreloaderInit = true;
 
-    <!-- Шрифты -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;500&family=Syne:wght@700;800&family=Permanent+Marker&display=swap"
-        rel="stylesheet">
-    <link rel="icon" href="favicon-v2.ico?v=1">
-    <link rel="shortcut icon" href="favicon-v2.ico?v=1">
-    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png?v=4">
-    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png?v=4">
-    <link rel="icon" type="image/png" sizes="any" href="assets/favicon.png?v=4">
-    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png?v=4">
+                class AcidWavePreloader {
+                    constructor() {
+                        this.container = document.getElementById('preloader');
+                        this.canvas = document.getElementById('preloader-canvas');
+                        if (!this.container || !this.canvas) return;
+
+                        this.ctx = this.canvas.getContext('2d');
+                        this.time = 0;
+                        this.rafId = null;
+                        this.isActive = true;
+                        this.duration = 6000;
+                        this.startTime = Date.now();
+                        this.isLoaded = false;
+                        this.finishStart = null;
+                        this.finishFrom = 0;
+                        this.finishDuration = 400;
+                        this.progress = 0;
+
+                        document.body.classList.add('is-locked');
+                        document.body.classList.add('intro-active');
+                        document.body.classList.remove('cursor-active');
+
+                        this.resize();
+                        window.addEventListener('resize', () => this.resize());
+                        this.loop();
+
+                        window.addEventListener('load', () => {
+                            this.isLoaded = true;
+                            const now = Date.now();
+                            this.finishStart = Math.max(this.startTime + this.duration, now);
+                            this.finishFrom = this.progress;
+                        });
+                    }
+
+                    resize() {
+                        if (!this.isActive) return;
+                        this.width = this.canvas.width = window.innerWidth;
+                        this.height = this.canvas.height = 300;
+                    }
+
+                    loop() {
+                        if (!this.isActive) return;
+
+                        const now = Date.now();
+                        let targetProgress = 0;
+                        if (this.isLoaded) {
+                            if (this.finishStart && now < this.finishStart) {
+                                const elapsed = now - this.startTime;
+                                targetProgress = Math.min(elapsed / this.duration, 0.95);
+                            } else {
+                                const finishElapsed = now - (this.finishStart || now);
+                                const t = Math.min(finishElapsed / this.finishDuration, 1);
+                                targetProgress = this.finishFrom + (1 - this.finishFrom) * t;
+                            }
+                        } else {
+                            const elapsed = now - this.startTime;
+                            targetProgress = Math.min(elapsed / this.duration, 0.95);
+                        }
+                        this.progress = Math.max(this.progress, targetProgress);
+
+                        this.time += 0.04;
+                        const { ctx, width, height, time } = this;
+
+                        ctx.clearRect(0, 0, width, height);
+
+                        const mainColor = '#d1ff0f';
+                        const threadColor = 'rgba(209, 255, 15, 0.15)';
+
+                        const getWaveY = (x) => {
+                            let yOffset = Math.sin(x * 0.01 + time) * 12;
+                            yOffset += Math.sin(x * 0.028 - time * 0.7) * 7;
+                            yOffset += Math.sin(x * 0.005 + time * 0.4) * 15;
+                            return height / 2 + yOffset;
+                        };
+
+                        ctx.lineWidth = 1;
+                        ctx.strokeStyle = threadColor;
+                        ctx.shadowBlur = 0;
+                        ctx.beginPath();
+                        for (let x = 0; x <= width; x += 4) {
+                            const y = getWaveY(x);
+                            if (x === 0) ctx.moveTo(x, y);
+                            else ctx.lineTo(x, y);
+                        }
+                        ctx.stroke();
+
+                        const drawWidth = width * this.progress;
+                        if (drawWidth > 0) {
+                            ctx.lineWidth = 1.5;
+                            ctx.strokeStyle = mainColor;
+                            ctx.shadowBlur = 12;
+                            ctx.shadowColor = mainColor;
+
+                            ctx.beginPath();
+                            for (let x = 0; x <= drawWidth; x += 4) {
+                                const y = getWaveY(x);
+                                if (x === 0) ctx.moveTo(x, y);
+                                else ctx.lineTo(x, y);
+                            }
+                            ctx.stroke();
+
+                            const tipX = drawWidth;
+                            const tipY = getWaveY(tipX);
+                            ctx.fillStyle = mainColor;
+                            ctx.beginPath();
+                            ctx.arc(tipX, tipY, 1.5, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+
+                        if (this.isLoaded && this.progress >= 1) {
+                            this.hide();
+                            return;
+                        }
+
+                        this.rafId = requestAnimationFrame(() => this.loop());
+                    }
+
+                    hide() {
+                        if (!this.isActive) return;
+                        this.isActive = false;
+                        this.container.classList.add('is-hidden');
+                        cancelAnimationFrame(this.rafId);
+                        document.documentElement.classList.remove('preloading');
+                        document.body.classList.add('cursor-active');
+                        setTimeout(() => {
+                            if (this.container) this.container.remove();
+                        }, 700);
+                    }
+                }
+
+                new AcidWavePreloader();
+            };
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initPreloader);
+            } else {
+                initPreloader();
+            }
+        })();
+    </script>
 
     <script>
         tailwind.config = {
@@ -53,6 +185,21 @@
             }
         }
     </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Шрифты -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;500&family=Syne:wght@700;800&family=Permanent+Marker&display=swap"
+        rel="stylesheet">
+    <link rel="icon" href="favicon-v2.ico?v=1">
+    <link rel="shortcut icon" href="favicon-v2.ico?v=1">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png?v=4">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png?v=4">
+    <link rel="icon" type="image/png" sizes="any" href="assets/favicon.png?v=4">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png?v=4">
 
     <style>
         body {
@@ -3885,162 +4032,6 @@
         };
         window.addEventListener('load', resetScrollTop);
         window.addEventListener('beforeunload', resetScrollTop);
-
-        // ACID WAVE PRELOADER (Canvas)
-        class AcidWavePreloader {
-            constructor() {
-                this.container = document.getElementById('preloader');
-                this.canvas = document.getElementById('preloader-canvas');
-                if (!this.container || !this.canvas) return;
-
-                this.ctx = this.canvas.getContext('2d');
-                this.time = 0;
-                this.rafId = null;
-                this.isActive = true;
-                this.duration = 6000;
-                this.startTime = Date.now();
-                this.isLoaded = false;
-                this.finishStart = null;
-                this.finishFrom = 0;
-                this.finishDuration = 400;
-                this.progress = 0;
-
-                document.body.classList.add('is-locked');
-                document.body.classList.add('intro-active');
-                document.body.classList.remove('cursor-active');
-
-                this.resize();
-                window.addEventListener('resize', () => this.resize());
-                this.loop();
-
-                window.addEventListener('load', () => {
-                    this.isLoaded = true;
-                    const now = Date.now();
-                    this.finishStart = Math.max(this.startTime + this.duration, now);
-                    this.finishFrom = this.progress;
-                });
-            }
-
-            resize() {
-                if (!this.isActive) return;
-                this.width = this.canvas.width = window.innerWidth;
-                this.height = this.canvas.height = 300;
-            }
-
-            loop() {
-                if (!this.isActive) return;
-
-                const now = Date.now();
-                let targetProgress = 0;
-                if (this.isLoaded) {
-                    if (this.finishStart && now < this.finishStart) {
-                        const elapsed = now - this.startTime;
-                        targetProgress = Math.min(elapsed / this.duration, 0.95);
-                    } else {
-                        const finishElapsed = now - (this.finishStart || now);
-                        const t = Math.min(finishElapsed / this.finishDuration, 1);
-                        targetProgress = this.finishFrom + (1 - this.finishFrom) * t;
-                    }
-                } else {
-                    const elapsed = now - this.startTime;
-                    targetProgress = Math.min(elapsed / this.duration, 0.95);
-                }
-                this.progress = Math.max(this.progress, targetProgress);
-
-                this.time += 0.04; // Smooth, slow movement
-                const { ctx, width, height, time } = this;
-
-                ctx.clearRect(0, 0, width, height);
-
-                const mainColor = '#d1ff0f';
-                const threadColor = 'rgba(209, 255, 15, 0.15)'; // Faint "needle-like" thread
-
-                // Function to get organic wave Y
-                const getWaveY = (x) => {
-                    let yOffset = Math.sin(x * 0.01 + time) * 12;
-                    yOffset += Math.sin(x * 0.028 - time * 0.7) * 7;
-                    yOffset += Math.sin(x * 0.005 + time * 0.4) * 15;
-                    return height / 2 + yOffset;
-                };
-
-                // 1. Draw the BACKGROUND THREAD (the whole path)
-                ctx.lineWidth = 1;
-                ctx.strokeStyle = threadColor;
-                ctx.shadowBlur = 0;
-                ctx.beginPath();
-                for (let x = 0; x <= width; x += 4) {
-                    const y = getWaveY(x);
-                    if (x === 0) ctx.moveTo(x, y);
-                    else ctx.lineTo(x, y);
-                }
-                ctx.stroke();
-
-                // 2. Draw the PROGRESS "CRAWLING" along the thread
-                const drawWidth = width * this.progress;
-                if (drawWidth > 0) {
-                    ctx.lineWidth = 1.5;
-                    ctx.strokeStyle = mainColor;
-                    ctx.shadowBlur = 12;
-                    ctx.shadowColor = mainColor;
-
-                    ctx.beginPath();
-                    for (let x = 0; x <= drawWidth; x += 4) {
-                        const y = getWaveY(x);
-                        if (x === 0) ctx.moveTo(x, y);
-                        else ctx.lineTo(x, y);
-                    }
-                    ctx.stroke();
-
-                    // 3. Small "Head" glow at the tip of progress
-                    const tipX = drawWidth;
-                    const tipY = getWaveY(tipX);
-                    ctx.fillStyle = mainColor;
-                    ctx.beginPath();
-                    ctx.arc(tipX, tipY, 1.5, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-
-                if (this.isLoaded && this.progress >= 1) {
-                    this.hide();
-                    return;
-                }
-
-                this.rafId = requestAnimationFrame(() => this.loop());
-            }
-
-            getLoadProgress() {
-                const images = Array.from(document.images || []);
-                const media = Array.from(document.querySelectorAll('video'));
-                const total = images.length + media.length;
-                if (total === 0) {
-                    const elapsed = Date.now() - this.startTime;
-                    return Math.min(elapsed / this.duration, 0.95);
-                }
-                let loaded = 0;
-                images.forEach(img => {
-                    if (img.complete && img.naturalWidth > 0) loaded += 1;
-                });
-                media.forEach(v => {
-                    if (v.readyState >= 2) loaded += 1;
-                });
-                const ratio = loaded / total;
-                return Math.min(ratio * 0.95, 0.95);
-            }
-
-            hide() {
-                if (!this.isActive) return;
-                this.isActive = false;
-                this.container.classList.add('is-hidden');
-                cancelAnimationFrame(this.rafId);
-                document.documentElement.classList.remove('preloading');
-                document.body.classList.add('cursor-active');
-                setTimeout(() => {
-                    if (this.container) this.container.remove();
-                }, 700);
-            }
-        }
-        new AcidWavePreloader();
-
 
         // Стартуем без проектов, если нет якоря в URL
         const applyHashView = () => {
